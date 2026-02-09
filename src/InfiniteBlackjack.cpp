@@ -6,19 +6,28 @@ using namespace std;
 
 //TODO: Create an enumerator named "Suit." Set the values to be HEARTS, DIAMONDS,
 //      CLUBS, and SPADES
+enum Suit { HEARTS, DIAMONDS, CLUBS, SPADES};
 
 //TODO: Create a struct named "Card." It needs to have a variable of type int named 
 //      value and a variable of type Suit named suit.
+struct Card {
+    int value;
+    Suit suit;
+};
 
 //TODO: Create a function of type Card named getRandomCard(). It will not
 //      have any parameters.
-
-//Within getRandomCard()....
+Card getRandomCard() {
     Card randomCard;
+    //random value between 2 and 14
+    randomCard.value = rand() % 13 + 2;
+
     //TODO: set the value variable within randomCard to be a random number between
     //      2 and 14
     randomCard.suit = static_cast<Suit>(rand() % 4);
     return randomCard;
+}
+
 //End of getRandomCard()
 
 //TODO: Create a function of type void named showCard(). It will take one parameter
@@ -28,10 +37,44 @@ using namespace std;
 //      card.value.
 //      For example: if card.value == 13 then cout << "| K "
 //      Please be sure to print the statement exactly how I have it above.
-//
-//TODO: Still within the function, create a switch statement that will check the
-//      value of card.suit. For example: If card.suit == HEARTS then
-//      cout << "heart |" Remember to have the cout exactly as written
+// 
+void showCard(const Card &card) {
+        switch (card.value) {
+            case 11:
+                cout << "| J ";
+                break;
+            case 12:
+                cout << "| Q ";
+                break;
+            case 13:
+                cout << "| K ";
+            case 14:
+                cout << "| A ";
+                break;
+            default:
+                cout << "| " << card.value << " ";
+                break;
+        }
+        //
+    //TODO: Still within the function, create a switch statement that will check the
+    //      value of card.suit. For example: If card.suit == HEARTS then
+    //      cout << "heart |" Remember to have the cout exactly as written
+        switch (card.suit) {
+        case HEARTS:
+            cout << "heart |";
+            break;
+        case DIAMONDS:
+            cout << "diamond |";
+            break;
+        case CLUBS:
+            cout << "club |";
+            break;
+        case SPADES:
+            cout << "spade |";
+            break;
+        }
+}
+
 
 //Because I am nice I have provided the next part ;)
 void dealCardAndTotal(int& aceCount, int& total) {
@@ -53,10 +96,16 @@ void dealCardAndTotal(int& aceCount, int& total) {
 //TODO: Create a function of type bool named hasBlackjack(). It takes 1 parameter
 //      of type int named total.
 //      If the total is equal to 21 then return true else false
+bool hasBlackjack(int total) {
+    return total == 21;
+}
 
 //TODO: Create a function of type bool named hasBusted(). It takes 1 parameter
 //      of type int named total.
 //      If the total is greater than 21 then return true else false
+bool hasBusted(int total) {
+    return total > 21;
+}
 
 void playBlackjack() {
     int playerTotal = 0;
@@ -67,18 +116,44 @@ void playBlackjack() {
     cout << "Your cards: ";
     //TODO: This is the user's hand. Deal them two cards
     //      by calling dealCardAndTotal() twice.
-
+    dealCardAndTotal(playerAceCount, playerTotal);
+    dealCardAndTotal(playerAceCount, playerTotal);
     cout << endl;
 
     cout << "Dealer's cards: ";
     cout << "? ";
     //TODO: This is the dealer's hand, so you will only be dealing 1 card right now
+    Card dealerFirst = getRandomCard();
+    if (dealerFirst.value == 14) {
+        dealerAceCount++;
+        dealerTotal += 11;
+    }
+    else if (dealerFirst.value >= 10) {
+        dealerTotal += 10;
+    }
+    else {
+        dealerTotal += dealerFirst.value;
+    }
+    while (dealerAceCount > 0 && dealerTotal > 21) { 
+        dealerAceCount--;
+        dealerTotal -= 10;
+    }
   
     cout << endl;
 
     while (true) {
         //TODO: check to see if the player has a blackjack
         //      else check to see if the player busted
+        if (hasBlackjack(playerTotal)) {
+            cout << "Your total: " << playerTotal << endl;
+            cout << "Blackjack! You win!\n";
+            return;
+        }
+        else if (hasBusted(playerTotal)) {
+            cout << "Your total: " << playerTotal << endl;
+            cout << "You busted!\n";
+            return;
+        }
 
         cout << "Your total: " << playerTotal << endl;
         cout << "Do you want to hit (h) or stand (s)? ";
@@ -88,7 +163,7 @@ void playBlackjack() {
         if (choice == 'h') {
             cout << "You drew a card: ";
             //TODO: Draw another card for the player
-
+            dealCardAndTotal(playerAceCount, playerTotal);
             cout << endl;
         } else if (choice == 's') {
             cout << "You chose to stand.\n";
@@ -101,11 +176,26 @@ void playBlackjack() {
     if (!hasBlackjack(playerTotal) && !hasBusted(playerTotal)) {
         //TODO: reveal the dealer's second card (hint: draw a new card)
         //      After which print the dealer's total to the console
+        cout << "Dealer's cards: ";
+        showCard(dealerFirst);
 
+        dealCardAndTotal(dealerAceCount, dealerTotal);
+        cout << endl;
         //TODO: If the dealer's total is less than 17 then deal a new card
-
+        while (dealerTotal < 17) {
+            cout << "Dealer draws: ";
+            dealCardAndTotal(dealerAceCount, dealerTotal);
+            cout << endl;
+            cout << "Dealer's total: " << dealerTotal << endl;
+        }
         //TODO: Check to see if the user has a blackjack else check if they have
         //      busted
+        if (hasBlackjack(dealerTotal)) {
+            cout << "Dealer has blackjack!\n";
+        }
+        else if (hasBusted(dealerTotal)) {
+            cout << "Dealer busted!\n";
+        }
     }
 
     if ((playerTotal > dealerTotal && !hasBusted(playerTotal)) || hasBlackjack(playerTotal) || hasBusted(dealerTotal)) {
@@ -118,7 +208,7 @@ void playBlackjack() {
 }
 
 int main() {
-    srand(time(nullptr));
+    srand(static_cast<unsigned int>(time(nullptr)));
     playBlackjack();
     return 0;
 }
